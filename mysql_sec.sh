@@ -1,44 +1,93 @@
 #!/bin/bash
-export DEBIAN_FRONTEND=noninteractive
 
-tput setaf 2; echo "MySQL Root Password ?"
-read MYSQL_ROOT_PASSWORD
+#
+# Automate mysql secure installation for debian-baed systems
+# 
+#  - You can set a password for root accounts.
+#  - You can remove root accounts that are accessible from outside the local host.
+#  - You can remove anonymous-user accounts.
+#  - You can remove the test database (which by default can be accessed by all users, even anonymous users), 
+#    and privileges that permit anyone to access databases with names that start with test_. 
+#  For details see documentation: http://dev.mysql.com/doc/refman/5.7/en/mysql-secure-installation.html
+#
+# @version 13.08.2014 00:39 +03:00
+# Tested on Debian 7.6 (wheezy)
+#
+# Usage:
+#  Setup mysql root password:  ./mysql_secure.sh 'your_new_root_password'
+#  Change mysql root password: ./mysql_secure.sh 'your_old_root_password' 'your_new_root_password'"
+#
 
-# Install Expect
-sudo apt-get -qq install expect > /dev/null
+# Delete package expect when script is done
+# 0 - No; 
+# 1 - Yes.
+PURGE_EXPECT_WHEN_DONE=0
 
-# Build Expect script
-tee ~/secure_our_mysql.sh > /dev/null << EOF
-spawn $(which mysql_secure_installation)
+#
+# Check the bash shell script is being run by root
+#
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
 
-expect "Enter password for user root:"
-send "$MYSQL_ROOT_PASSWORD\r"
+#
+# Check input params
+#
+if [ -n "${1}" -a -z "${2}" ]; then
+    # Setup root password
+    CURRENT_MYSQL_PASSWORD=''
+    NEW_MYSQL_PASSWORD="${1}"
+elif [ -n "${1}" -a -n "${2}" ]; then
+    # Change existens root password
+    CURRENT_MYSQL_PASSWORD="${1}"
+    NEW_MYSQL_PASSWORD="${2}"
+else
+    echo "Usage:"
+    echo "  Setup mysql root password: ${0} 'your_new_root_password'"
+    echo "  Change mysql root password: ${0} 'your_old_root_password' 'your_new_root_password'"
+    exit 1
+fi
 
-expect "Press y|Y for Yes, any other key for No:"
-send "y\r"
+#
+# Check is expect package installed
+#
+if [ $(dpkg-query -W -f='${Status}' expect 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+    echo "Can't find expect. Trying install it..."
+    aptitude -y install expect
 
-expect "Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG:"
-send "2\r"
+fi
 
-expect "Change the password for root ? ((Press y|Y for Yes, any other key for No) :"
-send "n\r"
+SECURE_MYSQL=$(expect -c "
+set timeout 3
+spawn mysql_secure_installation
+expect \"Enter current password for root (enter for none):\"
+send \"$CURRENT_MYSQL_PASSWORD\r\"
+expect \"root password?\"
+send \"y\r\"
+expect \"New password:\"
+send \"$NEW_MYSQL_PASSWORD\r\"
+expect \"Re-enter new password:\"
+send \"$NEW_MYSQL_PASSWORD\r\"
+expect \"Remove anonymous users?\"
+send \"y\r\"
+expect \"Disallow root login remotely?\"
+send \"y\r\"
+expect \"Remove test database and access to it?\"
+send \"y\r\"
+expect \"Reload privilege tables now?\"
+send \"y\r\"
+expect eof
+")
 
-expect "Remove anonymous users? (Press y|Y for Yes, any other key for No) :"
-send "y\r"
+#
+# Execution mysql_secure_installation
+#
+echo "${SECURE_MYSQL}"
 
-expect "Disallow root login remotely? (Press y|Y for Yes, any other key for No) :"
-send "y\r"
+if [ "${PURGE_EXPECT_WHEN_DONE}" -eq 1 ]; then
+    # Uninstalling expect package
+    aptitude -y purge expect
+fi
 
-expect "Remove test database and access to it? (Press y|Y for Yes, any other key for No) :"
-send "y\r"
-
-expect "Reload privilege tables now? (Press y|Y for Yes, any other key for No) :"
-send "y\r"
-
-EOF
-
-sudo apt-get -qq purge expect > /dev/null # Uninstall Expect, commented out in case you need Expect
-
-tput setaf 4; echo "MySQL Root Password:   $MYSQL_ROOT_PASSWORD"
-
-echo "MySQL setup completed. Insecure defaults are gone. Please remove this script manually when you are done with it (or at least remove the MySQL root password that you put inside it."
+exit 0
