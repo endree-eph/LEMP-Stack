@@ -61,13 +61,12 @@ sudo mysql -e "SET PASSWORD FOR root@localhost = PASSWORD('$DBRPASS');FLUSH PRIV
 printf "$DBRPASS\n y\n y\n y\n y\n y\n y\n" | sudo mysql_secure_installation
 PASS=`pwgen -s 14 1`
 
-sudo mysql -uroot --password 
-printf "$DBRPASS\n" <<MYSQL_SCRIPT
+mysql -u root -p$DBRPASS <<EOF
 CREATE DATABASE $USERNAME;
 CREATE USER '$USERNAME'@'localhost' IDENTIFIED BY '$PASS';
 GRANT ALL PRIVILEGES ON $USERNAME.* TO '$USERNAME'@'localhost';
 FLUSH PRIVILEGES;
-MYSQL_SCRIPT
+EOF
 
 echo
 echo
@@ -78,6 +77,7 @@ echo
 tput setaf 4; echo "Database Name:   $USERNAME"
 tput setaf 4; echo "Database Username:   $USERNAME"
 tput setaf 4; echo "Database Password:   $PASS"
+tput setaf 4; echo "MySQL ROOT Password:   $DBPASS"
 echo "--------------------------------"
 tput sgr0
 echo
