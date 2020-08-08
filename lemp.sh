@@ -72,7 +72,7 @@ echo "Website:    $DOMAIN"
 echo
 tput setaf 4; echo "Database Name:   $USERNAME"
 tput setaf 4; echo "Database Username:   $USERNAME"
-tput setaf 4; echo "Database Password:   $PASS"
+tput setaf 4; echo "Database Password:   $PASS" 
 echo "--------------------------------"
 tput sgr0
 echo
