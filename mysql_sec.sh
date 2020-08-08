@@ -1,23 +1,7 @@
 #!/bin/bash
-
 #
-# Automate mysql secure installation for debian-baed systems
-# 
-#  - You can set a password for root accounts.
-#  - You can remove root accounts that are accessible from outside the local host.
-#  - You can remove anonymous-user accounts.
-#  - You can remove the test database (which by default can be accessed by all users, even anonymous users), 
-#    and privileges that permit anyone to access databases with names that start with test_. 
-#  For details see documentation: http://dev.mysql.com/doc/refman/5.7/en/mysql-secure-installation.html
-#
-# @version 13.08.2014 00:39 +03:00
-# Tested on Debian 7.6 (wheezy)
-#
-# Usage:
-#  Setup mysql root password:  ./mysql_secure.sh 'your_new_root_password'
-#  Change mysql root password: ./mysql_secure.sh 'your_old_root_password' 'your_new_root_password'"
-#
-
+tput setaf 2; echo "DBPASS ?"
+read DBPASS
 # Delete package expect when script is done
 # 0 - No; 
 # 1 - Yes.
@@ -34,18 +18,13 @@ fi
 #
 # Check input params
 #
-if [ -n "${1}" -a -z "${2}" ]; then
+if [ -n "${1}" -a -z "$DBPASS" ]; then
     # Setup root password
     CURRENT_MYSQL_PASSWORD=''
     NEW_MYSQL_PASSWORD="${1}"
-elif [ -n "${1}" -a -n "${2}" ]; then
-    # Change existens root password
-    CURRENT_MYSQL_PASSWORD="${1}"
-    NEW_MYSQL_PASSWORD="${2}"
 else
     echo "Usage:"
-    echo "  Setup mysql root password: ${0} 'your_new_root_password'"
-    echo "  Change mysql root password: ${0} 'your_old_root_password' 'your_new_root_password'"
+    echo "  Setup mysql root password: $DBPASS 'your_new_root_password'"
     exit 1
 fi
 
