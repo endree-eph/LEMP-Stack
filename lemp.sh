@@ -4,6 +4,8 @@ tput setaf 2; echo "Domain Name (eg. example.com)?"
 read DOMAIN
 tput setaf 2; echo "Username (eg. database name)?"
 read USERNAME
+tput setaf 2; echo " MySQL ROOT Password?"
+read DBRPASS
 tput setaf 2; echo "Updating OS..."
 sleep 2;
 tput sgr0
@@ -55,7 +57,8 @@ sleep 2;
 tput sgr0
 sudo apt install mariadb-server mariadb-client php7.4-mysql -y
 sudo systemctl restart php7.4-fpm.service
-sudo mysql_secure_installation
+sudo mysql -e "SET PASSWORD FOR root@localhost = PASSWORD('$DBRPASS');FLUSH PRIVILEGES;" 
+printf "$DBRPASS\n y\n y\n y\n y\n y\n y\n" | sudo mysql_secure_installation
 PASS=`pwgen -s 14 1`
 
 sudo mysql -uroot <<MYSQL_SCRIPT
