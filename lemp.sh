@@ -77,7 +77,7 @@ echo
 tput setaf 4; echo "Database Name:   $USERNAME"
 tput setaf 4; echo "Database Username:   $USERNAME"
 tput setaf 4; echo "Database Password:   $PASS"
-tput setaf 4; echo "MySQL ROOT Password:   $DBPASS"
+tput setaf 4; echo "MySQL ROOT Password:   $DBRPASS"
 echo "--------------------------------"
 tput sgr0
 echo
