@@ -57,9 +57,8 @@ sleep 2;
 tput sgr0
 sudo apt install mariadb-server mariadb-client php7.4-mysql -y
 sudo systemctl restart php7.4-fpm.service
-#sudo mysql -e "SET PASSWORD FOR root@localhost = PASSWORD('$DBRPASS');FLUSH PRIVILEGES;" 
-printf "&\n y\n y\n $DBRPASS\n $DBRPASS\n y\n y\n" | sudo mysql_secure_installation
-
+sudo mysql -e "SET PASSWORD FOR root@localhost = PASSWORD('$DBRPASS');FLUSH PRIVILEGES;" 
+printf "$DBRPASS\n n\n n\n y\n y\n y\n y\n" | sudo mysql_secure_installation
 PASS=`pwgen -s 14 1`
 
 mysql -u root -p$DBRPASS <<EPH
